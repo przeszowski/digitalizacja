@@ -12,6 +12,7 @@
           controls
           playsinline
           preload="metadata"
+          poster="/video-poster.svg"
         >
           <source src="/video.mp4" type="video/mp4" />
           Twoja przegladarka nie obsluguje odtwarzacza wideo.
