@@ -1,29 +1,34 @@
 <script setup lang="ts">
 import { createClient } from '@supabase/supabase-js'
 
-// ─────────────────────────────────────────────────────────────────
-// Wklej tutaj dane z Twojego projektu Supabase (Settings → API)
-const SUPABASE_URL  = ''   // np. 'https://abcxyz.supabase.co'
-const SUPABASE_ANON = ''   // klucz "anon public"
-// ─────────────────────────────────────────────────────────────────
+const config = useRuntimeConfig()
+const supabaseUrl = config.public.supabaseUrl
+const supabaseAnonKey = config.public.supabaseAnonKey
 
-// Klient tworzony raz – nie przy każdym wysłaniu formularza
-const supabase = SUPABASE_URL && SUPABASE_ANON
-  ? createClient(SUPABASE_URL, SUPABASE_ANON)
+const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
   : null
 
-const form = reactive({ name: '', company: '', email: '', phone: '', message: '' })
+const form = reactive({
+  name: '',
+  company: '',
+  email: '',
+  phone: '',
+  message: '',
+})
+
 const submitted = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
 
 async function handleSubmit() {
   if (!form.name || !form.email) {
-    errorMsg.value = 'Wypełnij wymagane pola (imię i email).'
+    errorMsg.value = 'Wypelnij wymagane pola: imie i email.'
     return
   }
+
   if (!supabase) {
-    errorMsg.value = 'Formularz nie jest jeszcze skonfigurowany. Wklej dane Supabase w SectionContact.vue.'
+    errorMsg.value = 'Formularz nie jest skonfigurowany. Sprawdz ustawienia Supabase.'
     return
   }
 
@@ -32,17 +37,20 @@ async function handleSubmit() {
 
   try {
     const { error } = await supabase.from('kontakt').insert({
-      imie:      form.name,
-      firma:     form.company,
-      email:     form.email,
-      telefon:   form.phone,
+      imie: form.name,
+      firma: form.company,
+      email: form.email,
+      telefon: form.phone,
       wiadomosc: form.message,
     })
 
-    if (error) throw error
+    if (error) {
+      throw error
+    }
+
     submitted.value = true
   } catch (e: any) {
-    errorMsg.value = e?.message || 'Coś poszło nie tak. Spróbuj ponownie.'
+    errorMsg.value = e?.message || 'Cos poszlo nie tak. Sprobuj ponownie.'
   } finally {
     loading.value = false
   }
@@ -53,30 +61,30 @@ async function handleSubmit() {
   <section id="kontakt" data-testid="section-contact" class="py-20 px-6 md:px-12">
     <div class="max-w-6xl mx-auto flex justify-center">
       <div class="reveal-scale w-full max-w-[560px] bg-white rounded-2xl p-10 shadow-card-lg">
-
         <div class="text-center mb-10">
           <h2 class="font-poppins text-[30px] text-brand-dark tracking-[-0.6px] mb-3">
-            Skontaktuj się z nami
+            Skontaktuj sie z nami
           </h2>
           <p class="font-poppins text-[16px] text-brand-dark/80 leading-[1.6]">
-            Każdą współpracę zaczynamy od rozmowy i zrozumienia Twoich potrzeb. Napisz, jak możemy pomóc.
+            Kazda wspolprace zaczynamy od rozmowy i zrozumienia Twoich potrzeb. Napisz, jak mozemy pomoc.
           </p>
         </div>
 
-        <!-- Potwierdzenie -->
         <div v-if="submitted" class="text-center py-10">
-          <div class="text-5xl mb-4" aria-hidden="true">✅</div>
-          <h3 class="font-poppins text-[20px] text-brand-dark font-semibold mb-2">Wiadomość wysłana!</h3>
-          <p class="font-poppins text-[15px] text-brand-gray-light">Odezwiemy się do Ciebie wkrótce.</p>
+          <h3 class="font-poppins text-[20px] text-brand-dark font-semibold mb-2">
+            Wiadomosc wyslana!
+          </h3>
+          <p class="font-poppins text-[15px] text-brand-gray-light">
+            Odezwiemy sie do Ciebie wkrotce.
+          </p>
         </div>
 
-        <!-- Formularz -->
         <form v-else novalidate class="flex flex-col gap-4" @submit.prevent="handleSubmit">
           <div class="flex gap-4">
             <input
               v-model="form.name"
               type="text"
-              placeholder="Imię *"
+              placeholder="Imie *"
               autocomplete="given-name"
               class="flex-1 min-w-0 input-field"
             />
@@ -88,6 +96,7 @@ async function handleSubmit() {
               class="flex-1 min-w-0 input-field"
             />
           </div>
+
           <input
             v-model="form.email"
             type="email"
@@ -95,6 +104,7 @@ async function handleSubmit() {
             autocomplete="email"
             class="w-full input-field"
           />
+
           <input
             v-model="form.phone"
             type="tel"
@@ -102,9 +112,10 @@ async function handleSubmit() {
             autocomplete="tel"
             class="w-full input-field"
           />
+
           <textarea
             v-model="form.message"
-            placeholder="Wiadomość"
+            placeholder="Wiadomosc"
             rows="4"
             class="w-full input-field resize-none"
           />
@@ -123,12 +134,11 @@ async function handleSubmit() {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              Wysyłanie…
+              Wysylanie...
             </template>
-            <template v-else>Wyślij</template>
+            <template v-else>Wyslij</template>
           </button>
         </form>
-
       </div>
     </div>
   </section>
@@ -143,9 +153,10 @@ async function handleSubmit() {
   font-size: 15px;
   color: #4c4c4c;
   outline: none;
-  box-shadow: 0px 0px 27px 0px rgba(10, 114, 185, 0.14);
+  box-shadow: 0 0 27px 0 rgba(10, 114, 185, 0.14);
   transition: box-shadow 0.2s;
 }
+
 .input-field:focus {
   box-shadow: 0 0 0 2px rgba(10, 114, 185, 0.25);
 }
